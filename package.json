@@ -6,6 +6,7 @@
     "install-backend": "cd backend && npm install",
     "start-backend": "cd backend && node server.js",
     "install-frontend": "cd frontend && npm install",
-    "build-frontend": "cd frontend && npm run build"
+    "build": "cd frontend && npm run build",
+    "start-frontend": "cd frontend && npx serve -s build"
   }
 }
