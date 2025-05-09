@@ -1,0 +1,11 @@
+.App {
+  text-align: center;
+  min-height: 100vh;
+  padding: 20px 0;
+}
+
+@media (max-width: 768px) {
+  .App {
+    padding: 10px;
+  }
+}
