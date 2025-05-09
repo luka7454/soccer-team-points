@@ -1,0 +1,11 @@
+{
+  "name": "soccer-team-points",
+  "version": "1.0.0",
+  "description": "Soccer Team Points Management System",
+  "scripts": {
+    "install-backend": "cd backend && npm install",
+    "start-backend": "cd backend && node server.js",
+    "install-frontend": "cd frontend && npm install",
+    "build-frontend": "cd frontend && npm run build"
+  }
+}
