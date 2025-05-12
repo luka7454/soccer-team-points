@@ -1,16 +1,17 @@
 {
   "version": "1",
   "services": {
-    "backend": {
-      "type": "app",
-      "name": "soccer-team-points-backend",
-      "runtime": "nodejs",
-      "scope": "public",
-      "envs": [
+    "app": {
+      "type": "docker",
+      "name": "soccer-team-points",
+      "dockerfile": "./Dockerfile",
+      "ports": [
         {
-          "key": "PORT",
-          "value": "5000"
-        },
+          "port": 5000,
+          "protocol": "http"
+        }
+      ],
+      "envs": [
         {
           "key": "MONGODB_URI",
           "value": "mongodb+srv://iverson7454:y7QPA7yCFJOPvOlf@jong9.h96iyai.mongodb.net/?retryWrites=true&w=majority&appName=jong9"
@@ -18,28 +19,12 @@
         {
           "key": "NODE_ENV",
           "value": "production"
-        }
-      ],
-      "buildCommand": "cd backend && npm install",
-      "startCommand": "cd backend && npm start",
-      "port": 5000,
-      "dir": "."
-    },
-    "frontend": {
-      "type": "app",
-      "name": "soccer-team-points-frontend",
-      "runtime": "nodejs",
-      "scope": "public",
-      "envs": [
+        },
         {
-          "key": "REACT_APP_API_URL",
-          "value": "https://soccer-team-points-backend.app.cty.io/api"
+          "key": "PORT",
+          "value": "5000"
         }
-      ],
-      "buildCommand": "cd frontend && npm install && npm run build",
-      "startCommand": "cd frontend && npx serve -s build",
-      "port": 3000,
-      "dir": "."
+      ]
     }
   }
 }
