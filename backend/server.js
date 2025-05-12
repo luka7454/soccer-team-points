@@ -14,27 +14,47 @@ const categoryRoutes = require('./routes/categories');
 // Initialize app
 const app = express();
 
-// Middleware
-app.use(cors());
+// 수정된 CORS 설정 - 모든 출처 허용
+app.use(cors({
+  origin: '*',  // 모든 도메인에서의 요청 허용
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  credentials: true
+}));
+
 app.use(express.json());
+
+// 추가된 테스트 엔드포인트 
+app.get('/api/test', (req, res) => {
+  res.json({ message: 'API is working!' });
+});
 
 // Mount routes
 app.use('/api/members', memberRoutes);
 app.use('/api/categories', categoryRoutes);
 
-// Serve static assets in production
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../frontend/build')));
+// 정적 파일 서빙 부분 수정
+// 별도로 배포된 프론트엔드를 사용하므로 이 부분 주석 처리
+// if (process.env.NODE_ENV === 'production') {
+//   app.use(express.static(path.join(__dirname, '../frontend/build')));
+//   app.get('*', (req, res) => {
+//     res.sendFile(path.resolve(__dirname, '../', 'frontend', 'build', 'index.html'));
+//   });
+// }
 
-  app.get('*', (req, res) => {
-    res.sendFile(path.resolve(__dirname, '../', 'frontend', 'build', 'index.html'));
-  });
-}
+// API 경로가 아닌 모든 요청에 대해 404 응답
+app.use('*', (req, res, next) => {
+  if (!req.originalUrl.startsWith('/api/')) {
+    return res.status(404).json({ error: 'Not found' });
+  }
+  next();
+});
 
-// Connect to database
+// Connect to database with increased timeout
 mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
+  serverSelectionTimeoutMS: 30000, // 타임아웃 30초로 증가
+  connectTimeoutMS: 30000
 })
 .then(() => console.log('MongoDB Connected'))
 .catch(err => console.log('MongoDB Connection Error:', err));
@@ -55,7 +75,6 @@ const initializeCategories = async () => {
         { key: 'late', label: '지각(-3)', increment: 3, decrement: 3, isNegative: true },
         { key: 'absence', label: '무단결석(-10)', increment: 10, decrement: 10, isNegative: true }
       ];
-
       await Category.insertMany(defaultCategories);
       console.log('Default categories initialized');
     }
