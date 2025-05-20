@@ -264,7 +264,9 @@ const SoccerTeamPointsManager = () => {
   );
 
   // 멤버 정렬 (총점 기준)
-  const sortedMembers = [...filteredMembers].sort((a, b) => b.total - a.total);
+  const sortedMembers = selectedMemberId 
+  ? filteredMembers 
+  : [...filteredMembers].sort((a, b) => b.total - a.total);
 
   if (isLoading) {
     return <div className="flex justify-center items-center h-64">데이터를 불러오는 중...</div>;
