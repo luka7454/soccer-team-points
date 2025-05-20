@@ -11,6 +11,7 @@ const SoccerTeamPointsManager = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isEditing, setIsEditing] = useState(false); // 점수 편집 상태 추가
 
   // 초기 데이터 로드
   useEffect(() => {
@@ -40,6 +41,7 @@ const SoccerTeamPointsManager = () => {
   // 점수 증가 함수
   const increaseScore = async (memberId, category) => {
     try {
+      setIsEditing(true); // 편집 모드 활성화
       const cat = categories.find(c => c.key === category);
       const incrementValue = cat ? cat.increment : 1;
       
@@ -57,6 +59,7 @@ const SoccerTeamPointsManager = () => {
   // 점수 감소 함수
   const decreaseScore = async (memberId, category) => {
     try {
+      setIsEditing(true); // 편집 모드 활성화
       const cat = categories.find(c => c.key === category);
       const decrementValue = cat ? -cat.decrement : -1;
       
@@ -91,6 +94,7 @@ const SoccerTeamPointsManager = () => {
       const createdMember = await memberAPI.create(newMember);
       setMembers([...members, createdMember]);
       setNewMemberName('');
+      setIsEditing(false); // 편집 모드 비활성화
     } catch (err) {
       console.error('멤버 추가 오류:', err);
       setError('새 멤버를 추가하는 데 문제가 발생했습니다.');
@@ -104,6 +108,7 @@ const SoccerTeamPointsManager = () => {
         await memberAPI.delete(id);
         setMembers(members.filter(member => member._id !== id));
         setSelectedMemberId(null);
+        setIsEditing(false); // 편집 모드 비활성화
       } catch (err) {
         console.error('멤버 삭제 오류:', err);
         setError('멤버를 삭제하는 데 문제가 발생했습니다.');
@@ -113,7 +118,12 @@ const SoccerTeamPointsManager = () => {
 
   // 멤버 선택
   const selectMember = (id) => {
-    setSelectedMemberId(id === selectedMemberId ? null : id);
+    if (id === selectedMemberId) {
+      setSelectedMemberId(null);
+      setIsEditing(false); // 편집 모드 비활성화
+    } else {
+      setSelectedMemberId(id);
+    }
   };
 
   // 멤버 이름 수정
@@ -121,6 +131,7 @@ const SoccerTeamPointsManager = () => {
     if (newName.trim() === '') return;
     
     try {
+      setIsEditing(true); // 편집 모드 활성화
       const member = members.find(m => m._id === id);
       const updatedMember = await memberAPI.update(id, { ...member, name: newName });
       
@@ -210,6 +221,7 @@ const SoccerTeamPointsManager = () => {
         // 서버에 대량 업로드
         const savedMembers = await memberAPI.bulkImport(excelMembers);
         setMembers(savedMembers);
+        setIsEditing(false); // 편집 모드 비활성화
         
         setIsUploading(false);
       };
@@ -258,19 +270,35 @@ const SoccerTeamPointsManager = () => {
     XLSX.writeFile(wb, '축구팀_포인트_' + new Date().toISOString().slice(0, 10) + '.xlsx');
   };
 
+  // 배경 클릭 처리 (테이블 외부 클릭 시 편집 모드 비활성화)
+  const handleBackgroundClick = (e) => {
+    // 클릭된 요소가 테이블 외부인지 확인
+    const isOutsideTable = !e.target.closest('table');
+    if (isOutsideTable) {
+      setIsEditing(false);
+      setSelectedMemberId(null);
+    }
+  };
+
   // 이름으로 필터링된 멤버 목록
   const filteredMembers = members.filter(member => 
     member.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // 멤버 정렬 (총점 기준) - 선택된 멤버가 있으면 정렬하지 않음
-    let sortedMembers = [...filteredMembers];
-    if (!selectedMemberId) {
-    sortedMembers.sort((a, b) => b.total - a.total);
-    }
+  // 멤버 정렬 (총점 기준) - 편집 중이거나 선택된 멤버가 있으면 정렬하지 않음
+  let sortedMembers;
+  if (isEditing || selectedMemberId) {
+    sortedMembers = [...filteredMembers];
+  } else {
+    sortedMembers = [...filteredMembers].sort((a, b) => b.total - a.total);
+  }
   
+  if (isLoading) {
+    return <div className="flex justify-center items-center h-64">데이터를 불러오는 중...</div>;
+  }
+
   return (
-    <div className="p-4 max-w-6xl mx-auto bg-gray-50">
+    <div className="p-4 max-w-6xl mx-auto bg-gray-50" onClick={handleBackgroundClick}>
       <h1 className="text-2xl font-bold mb-4 text-center">축구팀 포인트 관리 시스템</h1>
       
       {error && (
