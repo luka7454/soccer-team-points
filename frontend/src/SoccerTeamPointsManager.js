@@ -263,15 +263,12 @@ const SoccerTeamPointsManager = () => {
     member.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // 멤버 정렬 (총점 기준)
-  const sortedMembers = selectedMemberId 
-  ? filteredMembers 
-  : [...filteredMembers].sort((a, b) => b.total - a.total);
-
-  if (isLoading) {
-    return <div className="flex justify-center items-center h-64">데이터를 불러오는 중...</div>;
-  }
-
+  // 멤버 정렬 (총점 기준) - 선택된 멤버가 있으면 정렬하지 않음
+    let sortedMembers = [...filteredMembers];
+    if (!selectedMemberId) {
+    sortedMembers.sort((a, b) => b.total - a.total);
+    }
+  
   return (
     <div className="p-4 max-w-6xl mx-auto bg-gray-50">
       <h1 className="text-2xl font-bold mb-4 text-center">축구팀 포인트 관리 시스템</h1>
