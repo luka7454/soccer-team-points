@@ -82,7 +82,7 @@ export const memberAPI = {
   // 모든 멤버의 포인트 리셋
   resetAllPoints: async () => {
     try {
-      const response = await api.put('/members/reset-points');
+      const response = await api.post('/members/reset-points');
       return response.data;
     } catch (error) {
       console.error('Error resetting points:', error);

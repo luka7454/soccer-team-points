@@ -29,6 +29,70 @@ router.post('/', async (req, res) => {
   }
 });
 
+// @route   POST /api/members/bulk
+// @desc    Bulk import members
+// @access  Public
+router.post('/bulk', async (req, res) => {
+  try {
+    const { members } = req.body;
+    
+    if (!members || !Array.isArray(members)) {
+      return res.status(400).json({ msg: 'Invalid members data' });
+    }
+    
+    // Clear existing members
+    await Member.deleteMany({});
+    
+    // Insert new members
+    const savedMembers = await Member.insertMany(members);
+    
+    res.json(savedMembers);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// @route   POST /api/members/reset-points
+// @desc    Reset all members' points to zero (keep members, reset scores only)
+// @access  Public
+router.post('/reset-points', async (req, res) => {
+  try {
+    console.log('포인트 리셋 요청 받음');
+    
+    // 모든 멤버의 포인트를 0으로 리셋
+    const result = await Member.updateMany(
+      {}, // 모든 문서 선택
+      {
+        $set: {
+          attendance: 0,
+          gameWin: 0,
+          roundWin: 0,
+          mom: 0,
+          fullAttendance: 0,
+          extra: 0,
+          late: 0,
+          absence: 0,
+          total: 0
+        }
+      }
+    );
+    
+    console.log(`${result.modifiedCount}개의 멤버 포인트 리셋 완료`);
+    
+    // 업데이트된 멤버 목록 반환
+    const updatedMembers = await Member.find().sort({ total: -1 });
+    
+    res.json({
+      message: `${result.modifiedCount}명의 멤버 포인트가 리셋되었습니다.`,
+      members: updatedMembers
+    });
+  } catch (err) {
+    console.error('포인트 리셋 에러:', err.message);
+    res.status(500).json({ error: 'Server Error', details: err.message });
+  }
+});
+
 // @route   PUT /api/members/:id
 // @desc    Update a member
 // @access  Public
@@ -131,66 +195,6 @@ router.patch('/:id/:category', async (req, res) => {
     await member.save();
     
     res.json(member);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
-  }
-});
-
-// @route   POST /api/members/bulk
-// @desc    Bulk import members
-// @access  Public
-router.post('/bulk', async (req, res) => {
-  try {
-    const { members } = req.body;
-    
-    if (!members || !Array.isArray(members)) {
-      return res.status(400).json({ msg: 'Invalid members data' });
-    }
-    
-    // Clear existing members
-    await Member.deleteMany({});
-    
-    // Insert new members
-    const savedMembers = await Member.insertMany(members);
-    
-    res.json(savedMembers);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
-  }
-});
-
-// @route   PUT /api/members/reset-points
-// @desc    Reset all members' points to zero (keep members, reset scores only)
-// @access  Public
-router.put('/reset-points', async (req, res) => {
-  try {
-    // 모든 멤버의 포인트를 0으로 리셋
-    const result = await Member.updateMany(
-      {}, // 모든 문서 선택
-      {
-        $set: {
-          attendance: 0,
-          gameWin: 0,
-          roundWin: 0,
-          mom: 0,
-          fullAttendance: 0,
-          extra: 0,
-          late: 0,
-          absence: 0,
-          total: 0
-        }
-      }
-    );
-    
-    // 업데이트된 멤버 목록 반환
-    const updatedMembers = await Member.find().sort({ total: -1 });
-    
-    res.json({
-      message: `${result.modifiedCount}명의 멤버 포인트가 리셋되었습니다.`,
-      members: updatedMembers
-    });
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server Error');
