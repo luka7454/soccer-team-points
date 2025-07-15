@@ -77,6 +77,17 @@ export const memberAPI = {
       console.error('Error bulk importing members:', error);
       throw error;
     }
+  },
+  
+  // 모든 멤버의 포인트 리셋
+  resetAllPoints: async () => {
+    try {
+      const response = await api.put('/members/reset-points');
+      return response.data;
+    } catch (error) {
+      console.error('Error resetting points:', error);
+      throw error;
+    }
   }
 };
 

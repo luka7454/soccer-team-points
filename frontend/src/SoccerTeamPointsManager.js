@@ -12,6 +12,7 @@ const SoccerTeamPointsManager = () => {
   const [error, setError] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isEditing, setIsEditing] = useState(false); // 점수 편집 상태 추가
+  const [isResetting, setIsResetting] = useState(false); // 포인트 리셋 상태 추가
 
   // 초기 데이터 로드
   useEffect(() => {
@@ -162,6 +163,29 @@ const SoccerTeamPointsManager = () => {
     } catch (err) {
       console.error('카테고리 수정 오류:', err);
       setError('카테고리 설정을 수정하는 데 문제가 발생했습니다.');
+    }
+  };
+
+  // 모든 멤버 포인트 리셋
+  const resetAllPoints = async () => {
+    const confirmMessage = `정말로 모든 멤버의 포인트를 0으로 리셋하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.\n멤버는 그대로 유지되고 점수만 초기화됩니다.`;
+    
+    if (window.confirm(confirmMessage)) {
+      try {
+        setIsResetting(true);
+        const result = await memberAPI.resetAllPoints();
+        setMembers(result.members);
+        setSelectedMemberId(null);
+        setIsEditing(false);
+        
+        // 성공 메시지 표시
+        alert(result.message);
+      } catch (err) {
+        console.error('포인트 리셋 오류:', err);
+        setError('포인트를 리셋하는 데 문제가 발생했습니다.');
+      } finally {
+        setIsResetting(false);
+      }
     }
   };
 
@@ -352,9 +376,9 @@ const SoccerTeamPointsManager = () => {
           {/* 데이터 관리 */}
           <div className="flex flex-col">
             <label className="text-sm font-medium mb-1">데이터 관리</label>
-            <div className="flex space-x-2">
-              <div className="relative flex-grow">
-                <label className="block w-full bg-green-500 text-white text-center px-4 py-2 rounded cursor-pointer hover:bg-green-600">
+            <div className="grid grid-cols-2 gap-2">
+              <div className="relative">
+                <label className="block w-full bg-green-500 text-white text-center px-3 py-2 rounded cursor-pointer hover:bg-green-600 text-sm">
                   엑셀 가져오기
                   <input
                     type="file"
@@ -367,9 +391,16 @@ const SoccerTeamPointsManager = () => {
               </div>
               <button
                 onClick={exportToExcel}
-                className="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600 flex-grow"
+                className="bg-purple-500 text-white px-3 py-2 rounded hover:bg-purple-600 text-sm"
               >
                 엑셀 내보내기
+              </button>
+              <button
+                onClick={resetAllPoints}
+                disabled={isResetting}
+                className="bg-red-500 text-white px-3 py-2 rounded hover:bg-red-600 disabled:bg-gray-400 text-sm col-span-2"
+              >
+                {isResetting ? '리셋 중...' : '모든 포인트 리셋'}
               </button>
             </div>
           </div>
@@ -736,6 +767,7 @@ const SoccerTeamPointsManager = () => {
           <li>이름 검색으로 특정 멤버를 빠르게 찾을 수 있습니다.</li>
           <li>멤버를 선택한 상태에서 이름을 수정하거나 삭제할 수 있습니다.</li>
           <li>엑셀 파일로 데이터를 가져오거나 내보낼 수 있습니다.</li>
+          <li><strong>🔴 모든 포인트 리셋</strong> 버튼으로 모든 멤버의 점수를 0으로 초기화할 수 있습니다 (멤버는 유지됨).</li>
           <li>모든 데이터는 서버에 자동 저장되므로 페이지를 닫아도 유지됩니다.</li>
         </ol>
       </div>

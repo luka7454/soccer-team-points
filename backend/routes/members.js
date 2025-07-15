@@ -161,4 +161,40 @@ router.post('/bulk', async (req, res) => {
   }
 });
 
+// @route   PUT /api/members/reset-points
+// @desc    Reset all members' points to zero (keep members, reset scores only)
+// @access  Public
+router.put('/reset-points', async (req, res) => {
+  try {
+    // 모든 멤버의 포인트를 0으로 리셋
+    const result = await Member.updateMany(
+      {}, // 모든 문서 선택
+      {
+        $set: {
+          attendance: 0,
+          gameWin: 0,
+          roundWin: 0,
+          mom: 0,
+          fullAttendance: 0,
+          extra: 0,
+          late: 0,
+          absence: 0,
+          total: 0
+        }
+      }
+    );
+    
+    // 업데이트된 멤버 목록 반환
+    const updatedMembers = await Member.find().sort({ total: -1 });
+    
+    res.json({
+      message: `${result.modifiedCount}명의 멤버 포인트가 리셋되었습니다.`,
+      members: updatedMembers
+    });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
 module.exports = router;
